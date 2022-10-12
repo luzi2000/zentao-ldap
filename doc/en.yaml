@@ -1,0 +1,21 @@
+---
+name: ldap
+code: ldap
+type: extension
+copyright: >
+  luzi 2022
+ldap: 
+author: 'luzi<lu_zi@msn.com>'
+abstract: ldap
+desc: >
+  ldap
+install: |
+license: AGPLv3
+releases:
+  1.0:
+    zentaoversion: 17.5
+    charge: business
+    license: AGPLv3
+    changelog: first blood
+    date: 2022
+    
