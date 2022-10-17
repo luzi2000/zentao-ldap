@@ -1,38 +1,28 @@
 <?php
-/**
- * The model file of ldap module of ZenTaoPMS.
- *
- * @license     ZPL (http://zpl.pub/page/zplv11.html)
- * @author      TigerLau
- * @package     ldap
- * @link        http://www.zentao.net
- */
-?>
-<?php
 class ldapModel extends model
 {
     public function identify($host, $dn, $pwd)
     {
         $ret = '';
-    	$ds = ldap_connect($host);
-    	if ($ds) {
-    		ldap_set_option($ds,LDAP_OPT_PROTOCOL_VERSION,3);
-    		ldap_bind($ds, $dn, $pwd);
+        $ds = ldap_connect($host);
+        if ($ds) {
+            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+            ldap_bind($ds, $dn, $pwd);
 
             $ret = ldap_error($ds);
-    		ldap_close($ds);
-    	}  else {
+            ldap_close($ds);
+        } else {
             $ret = ldap_error($ds);
         }
 
-    	return $ret;
+        return $ret;
     }
 
     public function getUsers($config)
     {
         $ds = ldap_connect($config->host);
         if ($ds) {
-            ldap_set_option($ds,LDAP_OPT_PROTOCOL_VERSION,3);
+            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
             ldap_bind($ds, $config->bindDN, $config->bindPWD);
 
             $attrs = [$config->uid, $config->mail, $config->name];
@@ -51,7 +41,7 @@ class ldapModel extends model
         $user = new stdclass();
         $account = '';
         $i=0;
-        for (; $i < $ldapUsers['count']; $i++) {         
+        for (; $i < $ldapUsers['count']; $i++) {
             $user->account = $ldapUsers[$i][$config->uid][0];
             $user->email = $ldapUsers[$i][$config->mail][0];
             $user->realname = $ldapUsers[$i][$config->name][0];
@@ -63,8 +53,7 @@ class ldapModel extends model
                 $this->dao->insert(TABLE_USER)->data($user)->autoCheck()->exec();
             }
 
-            if(dao::isError()) 
-            {
+            if (dao::isError()) {
                 echo js::error(dao::getError());
                 die(js::reload('parent'));
             }

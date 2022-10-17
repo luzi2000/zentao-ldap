@@ -1,21 +1,12 @@
 <?php
-/**
- * The control file of user module of ZenTaoPMS.
- *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv11.html)
- * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
- * @package     user
- * @version     $Id: control.php 5005 2013-07-03 08:39:11Z chencongzhi520@gmail.com $
- * @link        http://www.zentao.net
- */
+
 class ldap extends control
 {
     public $referer;
 
     /**
-     * Construct 
-     * 
+     * Construct
+     *
      * @access public
      * @return void
      */
@@ -29,7 +20,7 @@ class ldap extends control
         $this->locate(inlink('setting'));
     }
 
-    public function setting() 
+    public function setting()
     {
         $this->view->title      = $this->lang->ldap->common . $this->lang->colon . $this->lang->ldap->setting;
         $this->view->position[] = html::a(inlink('index'), $this->lang->ldap->common);
@@ -65,12 +56,12 @@ class ldap extends control
                           ."\$config->ldap->name = '{$this->post->ldapName}';\n";
 
             $file = fopen("config.php", "w") or die("Unable to open file!");
-            fwrite($file, $ldapConfig); 
-            fclose($file); 
+            fwrite($file, $ldapConfig);
+            fclose($file);
 
-            $this->locate(inlink('setting'));        
-	    echo "alert('ok')";
-	}
+            $this->locate(inlink('setting'));
+            echo "alert('ok')";
+        }
     }
 
     public function test()
@@ -79,7 +70,7 @@ class ldap extends control
     }
 
     public function sync()
-    {  
+    {
         $users = $this->ldap->sync2db($this->config->ldap);
         echo $users;
     }

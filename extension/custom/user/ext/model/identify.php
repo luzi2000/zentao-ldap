@@ -1,35 +1,65 @@
 <?php
 
-public function identify($account, $password)
+class ldapModel extends model
 {
-	if (0 == strcmp('$',substr($account, 0, 1))) {
-		return parent::identify(ltrim($account, '$'), $password);
-	} else {
-		$user = false;
-		$record = $this->dao->select('*')->from(TABLE_USER)
-            ->where('account')->eq($account)
-            ->andWhere('deleted')->eq(0)
-            ->fetch();
-        if ($record) {
-        	$ldap = $this->loadModel('ldap');
-        	$ldap_account = $this->config->ldap->uid.'='.$account.','.$this->config->ldap->baseDN;
-        	$pass = $ldap->identify($this->config->ldap->host, $ldap_account, $password);
-        	if (0 == strcmp('Success', $pass)) {
-        		$user = $record;
-        		$ip   = $this->server->remote_addr;
-						$last = $this->server->request_time;
-						// 禅道有多处地方需要二次验证密码, 所以需要保存密码的 MD5 在 session 中以供后续验证
-						$user->password = md5($password);
-						// 判断用户是否来自 ldap
-						$user->fromldap = true;
-						$this->dao->update(TABLE_USER)->set('visits = visits + 1')->set('ip')->eq($ip)->set('ip')->eq($ip)->set('last')->eq($last)->where('account')->eq($account)->exec();
-						$user->last = date(DT_DATETIME1, $user->last);
-						
-						/* Create cycle todo in login. */
-            $todoList = $this->dao->select('*')->from(TABLE_TODO)->where('cycle')->eq(1)->andWhere('account')->eq($user->account)->fetchAll('id');
-            $this->loadModel('todo')->createByCycle($todoList);
-        	}
-        }		
-		return $user;
-	}
+    public function identify($host, $dn, $pwd)
+    {
+        $ret = '';
+        $ds = ldap_connect($host);
+        if ($ds) {
+            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+            ldap_bind($ds, $dn, $pwd);
+
+            $ret = ldap_error($ds);
+            ldap_close($ds);
+        } else {
+            $ret = ldap_error($ds);
+        }
+
+        return $ret;
+    }
+
+    public function getUsers($config)
+    {
+        $ds = ldap_connect($config->host);
+        if ($ds) {
+            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+            ldap_bind($ds, $config->bindDN, $config->bindPWD);
+
+            $attrs = [$config->uid, $config->mail, $config->name];
+
+            $rlt = ldap_search($ds, $config->baseDN, $config->searchFilter, $attrs);
+            $data = ldap_get_entries($ds, $rlt);
+            return $data;
+        }
+
+        return null;
+    }
+
+    public function sync2db($config)
+    {
+        $ldapUsers = $this->getUsers($config);
+        $user = new stdclass();
+        $account = '';
+        $i=0;
+        for (; $i < $ldapUsers['count']; $i++) {
+            $user->account = $ldapUsers[$i][$config->uid][0];
+            $user->email = $ldapUsers[$i][$config->mail][0];
+            $user->realname = $ldapUsers[$i][$config->name][0];
+
+            $account = $this->dao->select('*')->from(TABLE_USER)->where('account')->eq($user->account)->fetch('account');
+            if ($account == $user->account) {
+                $this->dao->update(TABLE_USER)->data($user)->where('account')->eq($user->account)->autoCheck()->exec();
+            } else {
+                $this->dao->insert(TABLE_USER)->data($user)->autoCheck()->exec();
+            }
+
+            if (dao::isError()) {
+                echo js::error(dao::getError());
+                die(js::reload('parent'));
+            }
+        }
+
+        return $i;
+    }
 }
