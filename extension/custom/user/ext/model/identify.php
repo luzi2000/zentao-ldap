@@ -1,4 +1,5 @@
 <?php
+
 public function identify($account, $password)
 {
 	if (0 == strcmp('$',substr($account, 0, 1))) {
