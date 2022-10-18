@@ -1,0 +1,10 @@
+stages:
+    - deploy
+deploy:
+    stage: deploy
+    script:
+        - echo "发布中...."
+        - cp -fr extension/custom/* /opt/zentaopms/extension/custom/
+        - echo "发布完成"
+    only:
+        - master
