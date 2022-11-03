@@ -13,7 +13,7 @@ install: |
 license: AGPLv3
 releases:
   1.0:
-    zentaoversion: 17.5
+    zentaoversion: 17.6.2
     charge: business
     license: AGPLv3
     changelog: first blood
