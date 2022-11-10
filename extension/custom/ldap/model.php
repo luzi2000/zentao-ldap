@@ -1,6 +1,28 @@
 <?php
 class ldapModel extends model
 {
+    public function getUserDn($config, $account){
+    $ret = null;
+    $ds = ldap_connect($config->host);
+    if ($ds) {
+        ldap_set_option($ds,LDAP_OPT_PROTOCOL_VERSION,3);
+        ldap_bind($ds, $config->bindDN, $config->bindPWD);
+        $filter = "($config->uid=$account)";
+        $rlt = ldap_search($ds, $config->baseDN, $filter);
+        $count=ldap_count_entries($ds, $rlt);
+
+        if($count > 0){
+            $data = ldap_get_entries($ds, $rlt);
+            $ret = $data[0]['dn'];
+            $str = serialize($data);
+        }
+
+        ldap_unbind($ds);
+        ldap_close($ds);
+    }
+    return $ret;
+    }
+    
     public function identify($host, $dn, $pwd)
     {
         $ret = '';
