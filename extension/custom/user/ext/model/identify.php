@@ -11,7 +11,7 @@ public function identify($account, $password)
             ->fetch();
         if ($record) {
         	$ldap = $this->loadModel('ldap');
-        	$ldap_account = $this->config->ldap->uid.'='.$account.','.$this->config->ldap->baseDN;
+		$ldap_account = $ldap->getUserDn($this->config->ldap, $account);
         	$pass = $ldap->identify($this->config->ldap->host, $ldap_account, $password);
         	if (0 == strcmp('Success', $pass)) {
         		$user = $record;
